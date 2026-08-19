@@ -1,0 +1,11 @@
+{
+  "0x742d35Cc6634C0532925a3b844Bc454e4438f44e": {
+    "entity_type": "Exchange",
+    "organization": "Known Exchange Wallet",
+    "country": "Unknown",
+    "tags": ["exchange", "hot_wallet"],
+    "threats": [],
+    "sources": ["Internal Intelligence"],
+    "confidence": 95
+  }
+}

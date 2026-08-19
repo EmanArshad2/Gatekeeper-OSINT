@@ -1,0 +1,28 @@
+# Backend generated/runtime files
+backend/telegram_media/
+backend/telegram_sessions/
+backend/storage/
+backend/*.db
+backend/*.db-*
+backend/*.session
+backend/*.session-journal
+backend/**/__pycache__/
+backend/**/*.pyc
+
+# Environment/secrets
+.env
+.env.*
+!.env.example
+
+# Frontend
+frontend/.next/
+frontend/node_modules/
+frontend/tsconfig.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+
+# OS
+.DS_Store
+Thumbs.db
