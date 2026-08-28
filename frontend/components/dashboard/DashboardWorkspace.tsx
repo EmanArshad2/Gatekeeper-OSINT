@@ -67,15 +67,24 @@ export default function CommandCenter() {
     try {
       const response = await api.get("/dashboard");
       if (response?.data) {
+        const d = response.data;
+        const metrics = d.metrics || {};
+        const alertsList = Array.isArray(d.wallet_alerts) && d.wallet_alerts.length > 0
+          ? d.wallet_alerts
+          : (Array.isArray(d.alerts) ? d.alerts : []);
+        const eventsList = Array.isArray(d.osint) && d.osint.length > 0
+          ? d.osint
+          : (Array.isArray(d.events) ? d.events : []);
+
         setData((previous) => ({
           ...previous,
-          ...response.data,
-          alerts: Array.isArray(response.data.alerts)
-            ? response.data.alerts
-            : previous.alerts,
-          events: Array.isArray(response.data.events)
-            ? response.data.events
-            : previous.events,
+          ...d,
+          highRiskEntities: metrics.high_risk ?? d.highRiskEntities ?? previous.highRiskEntities,
+          trackedWallets: metrics.wallets ?? d.trackedWallets ?? previous.trackedWallets,
+          osintCorrelations: metrics.osint_matches ?? d.osintCorrelations ?? previous.osintCorrelations,
+          activeInvestigations: metrics.investigations ?? d.activeInvestigations ?? previous.activeInvestigations,
+          alerts: alertsList,
+          events: eventsList,
         }));
       }
       setLastUpdated(new Date());

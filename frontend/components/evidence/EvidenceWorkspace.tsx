@@ -46,9 +46,20 @@ export default function EvidenceWorkspace() {
         const res = await fetch(`${API}/evidence`, { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
-          setEvidenceList(data.evidence || []);
+          const list = (data.evidence && data.evidence.length > 0) 
+            ? data.evidence 
+            : (data.files && data.files.length > 0 ? data.files.map((f: any) => ({
+                id: f.media_id || f.id,
+                filename: f.file || f.filename,
+                media_type: f.type || f.media_type || "Image",
+                wallet_count: f.wallet_count || 0,
+                wallets: f.wallets || [],
+                risk_score: f.risk_score || 0,
+                risk_level: f.risk_level || "LOW",
+                created_at: f.uploaded || f.created_at || new Date().toISOString()
+              })) : []);
+          setEvidenceList(list.length > 0 ? list : []);
         } else {
-          // Default demo evidence if backend response is empty
           setEvidenceList(getDemoEvidence());
         }
       } catch (err) {

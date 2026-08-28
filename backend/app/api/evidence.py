@@ -101,56 +101,97 @@ def get_evidence(
     db: Session = Depends(get_database),
 ):
     media_files = (
-        db.query(
-            Media.id,
-            Media.filename,
-            Media.file_type,
-            Media.file_size,
-            Media.file_path,
-            Media.created_at,
-        )
+        db.query(Media)
         .order_by(Media.created_at.desc())
         .all()
     )
     files = []
+    evidence_items = []
     for media in media_files:
         # --------------------------------------------------------
         # Resolve physical file
         # --------------------------------------------------------
         resolved_path = resolve_evidence_file(media)
         file_exists = resolved_path is not None
-        # --------------------------------------------------------
-        # If the DB does not have a file size, get it from disk
-        # --------------------------------------------------------
         actual_size = media.file_size
         if actual_size is None and resolved_path:
             try:
                 actual_size = resolved_path.stat().st_size
             except OSError:
                 actual_size = None
+
         # --------------------------------------------------------
-        # Evidence record
+        # Resolve Extraction & Wallets
         # --------------------------------------------------------
+        extractions = (
+            db.query(Extraction)
+            .filter(Extraction.media_id == media.id)
+            .all()
+        )
+        extraction_ids = [e.id for e in extractions]
+        wallets = (
+            db.query(Wallet)
+            .filter(Wallet.extraction_id.in_(extraction_ids))
+            .all()
+            if extraction_ids
+            else []
+        )
+        wallet_addresses = [w.address for w in wallets]
+
+        highest_risk = 0
+        if wallets:
+            highest_risk = max((w.risk_score for w in wallets), default=0)
+        elif extractions:
+            highest_risk = max((e.highest_risk for e in extractions), default=0)
+
+        if highest_risk >= 70:
+            risk_level = "CRITICAL"
+        elif highest_risk >= 50:
+            risk_level = "HIGH"
+        elif highest_risk >= 30:
+            risk_level = "MEDIUM"
+        else:
+            risk_level = "LOW"
+
+        file_type_str = get_file_type(media.file_type)
+
+        # File record for backward compatibility
         files.append(
             {
                 "id": f"EV-{media.id:04d}",
                 "media_id": media.id,
                 "file": media.filename,
-                "type": get_file_type(media.file_type),
+                "type": file_type_str,
                 "uploaded": media.created_at,
                 "size": format_file_size(actual_size),
-                "view_url": (
-                    f"/api/evidence/{media.id}/view"
-                ),
-                "download_url": (
-                    f"/api/evidence/{media.id}/download"
-                ),
+                "view_url": f"/api/evidence/{media.id}/view",
+                "download_url": f"/api/evidence/{media.id}/download",
                 "available": file_exists,
             }
         )
+
+        # Evidence Workspace format
+        evidence_items.append(
+            {
+                "id": media.id,
+                "media_id": media.id,
+                "filename": media.filename,
+                "media_type": file_type_str,
+                "file_size": actual_size,
+                "wallet_count": len(wallets),
+                "wallets": wallet_addresses,
+                "risk_score": highest_risk,
+                "risk_level": risk_level,
+                "created_at": media.created_at.isoformat() if hasattr(media.created_at, "isoformat") else str(media.created_at),
+                "view_url": f"/api/evidence/{media.id}/view",
+                "download_url": f"/api/evidence/{media.id}/download",
+            }
+        )
+
     return {
         "status": "SUCCESS",
         "files": files,
+        "evidence": evidence_items,
     }
 # ================================================================
 # VIEW EVIDENCE
