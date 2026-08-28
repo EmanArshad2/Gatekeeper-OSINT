@@ -44,90 +44,50 @@ const navSections: NavSection[] = [
         href: "/",
         icon: LayoutDashboard,
       },
+    ],
+  },
+  {
+    category: "INTAKE & EXTRACTION",
+    items: [
       {
-        name: "Investigations",
-        href: "/investigation",
-        icon: Search,
-        badge: "04",
-        tone: "cyan",
+        name: "Extraction Workbench",
+        href: "/upload",
+        icon: Upload,
       },
       {
         name: "Evidence Vault",
         href: "/evidence",
         icon: FolderSearch,
+        tone: "cyan",
       },
       {
-        name: "History",
-        href: "/history",
-        icon: History,
-      },
-    ],
-  },
-  {
-    category: "COLLECTION",
-    items: [
-      {
-        name: "Evidence Intake",
-        href: "/upload",
-        icon: Upload,
-      },
-      {
-        name: "OSINT Collection",
+        name: "OSINT Feed",
         href: "/osint",
         icon: Radio,
         badge: "LIVE",
         tone: "green",
       },
-      {
-        name: "Threat Intelligence",
-        href: "/threatintelligence",
-        icon: ShieldAlert,
-        badge: "LIVE",
-        tone: "red",
-      },
     ],
   },
   {
-    category: "ANALYSIS",
+    category: "ATTRIBUTION & REPORTS",
     items: [
       {
-        name: "Wallet Intelligence",
+        name: "Wallet Identity",
         href: "/wallet",
         icon: Wallet,
         tone: "amber",
       },
       {
-        name: "Risk Analysis",
-        href: "/risk",
-        icon: Activity,
-      },
-      {
-        name: "Entity Network",
+        name: "Entity Graph",
         href: "/graph",
         icon: Network,
         tone: "violet",
       },
-    ],
-  },
-  {
-    category: "OPERATIONS",
-    items: [
       {
-        name: "Reports",
+        name: "Investigation Reports",
         href: "/reports",
         icon: FileText,
-      },
-      {
-        name: "System Monitor",
-        href: "/system",
-        icon: Database,
-        badge: "LIVE",
-        tone: "green",
-      },
-      {
-        name: "Audit Logs",
-        href: "/audit",
-        icon: Terminal,
       },
       {
         name: "Settings",

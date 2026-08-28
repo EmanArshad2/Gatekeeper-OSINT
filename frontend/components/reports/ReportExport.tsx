@@ -1,40 +1,29 @@
 "use client";
+
 import { useState } from "react";
-import { Download, FileText, Database, Loader2 } from "lucide-react";
-interface ReportExportProps {
-  caseId: number | null;
-}
+import { Download, FileText, Database, Table, Loader2 } from "lucide-react";
+
 const API = "http://127.0.0.1:8000/api";
-export default function ReportExport({ caseId }: ReportExportProps) {
+
+export default function ReportExport() {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isExportingJSON, setIsExportingJSON] = useState(false);
-  // No case selected no longer disables export — it now targets the
-  // backend's /adhoc endpoints, which cover every wallet extracted so
-  // far (uploads, Telegram, X/Twitter, websites) instead of requiring
-  // a case to be created first.
-  const disabled = false;
+  const [isExportingCSV, setIsExportingCSV] = useState(false);
+
   async function generatePDF() {
     try {
       setIsGeneratingPDF(true);
-      const endpoint =
-        caseId === null
-          ? `${API}/report/generate/adhoc`
-          : `${API}/report/generate/${caseId}`;
-      const response = await fetch(endpoint, {
+      const response = await fetch(`${API}/report/generate/adhoc`, {
         method: "POST",
-        headers:
-          caseId === null ? { "Content-Type": "application/json" } : undefined,
-        body: caseId === null ? JSON.stringify({}) : undefined,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Gatekeeper Forensic Investigation Report" }),
       });
       if (!response.ok) throw new Error("Report generation failed");
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download =
-        caseId === null
-          ? "gatekeeper-all-extracted.pdf"
-          : `gatekeeper-case-${caseId}.pdf`;
+      link.download = "gatekeeper-forensic-report.pdf";
       link.click();
       URL.revokeObjectURL(url);
     } catch (error) {
@@ -43,16 +32,11 @@ export default function ReportExport({ caseId }: ReportExportProps) {
       setIsGeneratingPDF(false);
     }
   }
+
   async function exportJSON() {
     try {
       setIsExportingJSON(true);
-      // Pulls the real case + wallet data from the backend — previously
-      // this built a fake 2-field JSON blob entirely client-side.
-      const endpoint =
-        caseId === null
-          ? `${API}/report/export-json/adhoc`
-          : `${API}/report/export-json/${caseId}`;
-      const response = await fetch(endpoint, { cache: "no-store" });
+      const response = await fetch(`${API}/report/export-json/adhoc`, { cache: "no-store" });
       if (!response.ok) throw new Error("JSON export failed");
       const report = await response.json();
       const blob = new Blob([JSON.stringify(report, null, 2)], {
@@ -61,10 +45,7 @@ export default function ReportExport({ caseId }: ReportExportProps) {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download =
-        caseId === null
-          ? "gatekeeper-all-extracted.json"
-          : `gatekeeper-case-${caseId}.json`;
+      link.download = "gatekeeper-forensic-report.json";
       link.click();
       URL.revokeObjectURL(url);
     } catch (error) {
@@ -73,6 +54,34 @@ export default function ReportExport({ caseId }: ReportExportProps) {
       setIsExportingJSON(false);
     }
   }
+
+  async function exportCSV() {
+    try {
+      setIsExportingCSV(true);
+      const response = await fetch(`${API}/wallets`, { cache: "no-store" });
+      if (!response.ok) throw new Error("CSV export failed");
+      const data = await response.json();
+      const wallets = data.wallets || [];
+
+      let csv = "ID,Address,Blockchain,Risk Level,Risk Score,Confidence,Balance,Blacklisted,Created At\n";
+      for (const w of wallets) {
+        csv += `"${w.id}","${w.address}","${w.chain}","${w.risk_level}",${w.risk_score},${w.confidence},${w.balance},${w.blacklisted},"${w.created_at}"\n`;
+      }
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "gatekeeper-wallet-attribution.csv";
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("CSV Export Error:", error);
+    } finally {
+      setIsExportingCSV(false);
+    }
+  }
+
   return (
     <div className="rounded-2xl border border-white/[0.07] bg-[#070b12]/90 p-6 backdrop-blur-xl">
       <div className="flex items-center gap-3">
@@ -81,12 +90,10 @@ export default function ReportExport({ caseId }: ReportExportProps) {
         </div>
         <div>
           <h2 className="text-base font-semibold text-white">
-            Export Investigation Report
+            Export Investigation Reports & Intelligence
           </h2>
           <p className="mt-0.5 text-xs text-slate-500">
-            {caseId === null
-              ? "No case selected — this covers every wallet extracted so far"
-              : "Download a certified PDF brief or raw JSON telemetry"}
+            Download certified PDF briefs, raw JSON telemetry, or CSV attribution spreadsheets
           </p>
         </div>
       </div>
@@ -94,7 +101,7 @@ export default function ReportExport({ caseId }: ReportExportProps) {
         <button
           type="button"
           onClick={generatePDF}
-          disabled={isGeneratingPDF || disabled}
+          disabled={isGeneratingPDF}
           className="flex items-center gap-2 rounded-xl border border-cyan-400/25 bg-cyan-400/[0.07] px-5 py-3 text-sm font-semibold text-cyan-300 transition-all hover:border-cyan-400/40 hover:bg-cyan-400/[0.12] disabled:cursor-not-allowed disabled:opacity-40"
         >
           {isGeneratingPDF ? (
@@ -102,12 +109,13 @@ export default function ReportExport({ caseId }: ReportExportProps) {
           ) : (
             <FileText size={17} className="text-cyan-400" />
           )}
-          {isGeneratingPDF ? "Generating PDF..." : "Generate PDF Brief"}
+          {isGeneratingPDF ? "Generating PDF..." : "Download PDF Report"}
         </button>
+
         <button
           type="button"
           onClick={exportJSON}
-          disabled={isExportingJSON || disabled}
+          disabled={isExportingJSON}
           className="flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.02] px-5 py-3 text-sm font-medium text-slate-300 transition-all hover:border-cyan-400/20 hover:bg-white/[0.04] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
         >
           {isExportingJSON ? (
@@ -116,6 +124,20 @@ export default function ReportExport({ caseId }: ReportExportProps) {
             <Database size={17} className="text-cyan-400" />
           )}
           {isExportingJSON ? "Exporting JSON..." : "Export Raw JSON"}
+        </button>
+
+        <button
+          type="button"
+          onClick={exportCSV}
+          disabled={isExportingCSV}
+          className="flex items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.02] px-5 py-3 text-sm font-medium text-slate-300 transition-all hover:border-cyan-400/20 hover:bg-white/[0.04] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {isExportingCSV ? (
+            <Loader2 size={17} className="animate-spin text-cyan-400" />
+          ) : (
+            <Table size={17} className="text-emerald-400" />
+          )}
+          {isExportingCSV ? "Exporting CSV..." : "Export CSV Spreadsheet"}
         </button>
       </div>
     </div>

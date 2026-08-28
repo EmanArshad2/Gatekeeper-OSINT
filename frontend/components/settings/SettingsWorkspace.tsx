@@ -65,35 +65,34 @@ export default function SettingsWorkspace() {
         },
         cache: "no-store",
       });
-      if (!response.ok) {
-        throw new Error(`Failed to load settings (${response.status})`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data?.status === "SUCCESS" && data?.settings) {
+          const serverSettings: SettingsState = {
+            desktop_notifications:
+              typeof data.settings?.desktop_notifications === "boolean"
+                ? data.settings.desktop_notifications
+                : DEFAULT_SETTINGS.desktop_notifications,
+            threat_notifications:
+              typeof data.settings?.threat_notifications === "boolean"
+                ? data.settings.threat_notifications
+                : DEFAULT_SETTINGS.threat_notifications,
+            auto_refresh:
+              typeof data.settings?.auto_refresh === "boolean"
+                ? data.settings.auto_refresh
+                : DEFAULT_SETTINGS.auto_refresh,
+          };
+          setSettings(serverSettings);
+          setOriginalSettings(serverSettings);
+          return;
+        }
       }
-      const data = await response.json();
-      if (data?.status !== "SUCCESS") {
-        throw new Error("Backend returned an unsuccessful response.");
-      }
-      const serverSettings: SettingsState = {
-        desktop_notifications:
-          typeof data.settings?.desktop_notifications === "boolean"
-            ? data.settings.desktop_notifications
-            : DEFAULT_SETTINGS.desktop_notifications,
-        threat_notifications:
-          typeof data.settings?.threat_notifications === "boolean"
-            ? data.settings.threat_notifications
-            : DEFAULT_SETTINGS.threat_notifications,
-        auto_refresh:
-          typeof data.settings?.auto_refresh === "boolean"
-            ? data.settings.auto_refresh
-            : DEFAULT_SETTINGS.auto_refresh,
-      };
-      setSettings(serverSettings);
-      setOriginalSettings(serverSettings);
+      setSettings(DEFAULT_SETTINGS);
+      setOriginalSettings(DEFAULT_SETTINGS);
     } catch (error) {
-      console.error("Settings load error:", error);
-      showToast(
-        "error",
-        "Unable to load configuration from the Gatekeeper API.",
-      );
+      console.warn("Settings load fallback to defaults:", error);
+      setSettings(DEFAULT_SETTINGS);
+      setOriginalSettings(DEFAULT_SETTINGS);
     } finally {
       setLoading(false);
     }

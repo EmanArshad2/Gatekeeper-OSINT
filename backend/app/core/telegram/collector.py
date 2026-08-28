@@ -12,7 +12,7 @@ from sqlalchemy.orm.attributes import flag_modified
 from telethon import events
 from app.core.ocr.engine import ocr_engine
 from app.core.qr.scanner import qr_scanner
-from app.core.telegram.client import client
+from app.core.telegram.client import client, is_telegram_configured
 from app.database.connection import SessionLocal
 from app.database.models import TelegramMessage, Wallet
 # =====================================================
@@ -1656,6 +1656,10 @@ async def start_collector():
         "========================================"
     )
     try:
+        if not is_telegram_configured() or client is None:
+            print("Telegram credentials not configured; skipping Telegram collector start.")
+            telegram_running = False
+            return
         # =================================================
         # Connect existing client
         # =================================================

@@ -31,3 +31,4 @@ psycopg2-binary
 neo4j
 # REPORTING / PDF
 reportlab
+pdf2image

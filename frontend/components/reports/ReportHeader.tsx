@@ -1,14 +1,15 @@
 "use client";
+
 import { FileText, ShieldCheck } from "lucide-react";
+
 interface ReportHeaderProps {
-  caseId?: string;
   title?: string;
   status?: string;
 }
+
 export default function ReportHeader({
-  caseId,
-  title = "Forensic Investigation Report",
-  status = "ACTIVE",
+  title = "Evidence & Extraction Forensic Report",
+  status = "INTELLIGENCE READY",
 }: ReportHeaderProps) {
   return (
     <div className="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#070b12]/90 p-6 backdrop-blur-xl lg:p-7">
@@ -21,7 +22,7 @@ export default function ReportHeader({
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-md border border-cyan-400/20 bg-cyan-400/[0.06] px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-cyan-400">
-                CASE FILE
+                FORENSIC REPORT
               </span>
               <span className="flex items-center gap-1 font-mono text-[10px] font-semibold text-emerald-400">
                 <ShieldCheck size={12} />
@@ -32,10 +33,7 @@ export default function ReportHeader({
               {title}
             </h1>
             <p className="mt-1 font-mono text-xs text-slate-500">
-              Reference:{" "}
-              <span className="text-cyan-400">
-                {caseId ?? "No case selected"}
-              </span>
+              Scope: <span className="text-cyan-400">All Ingested OSINT Evidence & Extracted Wallets</span>
             </p>
           </div>
         </div>
@@ -45,7 +43,7 @@ export default function ReportHeader({
               Classification
             </span>
             <p className="mt-0.5 font-mono text-xs font-semibold text-slate-300">
-              RESTRICTED // OSINT
+              RESTRICTED // FORENSIC OSINT
             </p>
           </div>
         </div>

@@ -1,8 +1,10 @@
 import logging
 from datetime import datetime, timezone
-from app.database.neo4j import driver
+from app.database.neo4j import get_neo4j_driver
 logger = logging.getLogger(__name__)
 class GraphService:
+    def _get_driver(self):
+        return get_neo4j_driver()
     # =========================================================
     # MEDIA -> WALLET GRAPH
     # =========================================================
@@ -62,7 +64,11 @@ class GraphService:
                 risk_reasons = str(
                     risk_reasons or ""
                 )
-            with driver.session() as session:
+            drv = self._get_driver()
+            if not drv:
+                logger.debug("Neo4j driver offline; skipping graph operation.")
+                return
+            with drv.session() as session:
                 session.run(
                     query,
                     source=source,
@@ -164,7 +170,11 @@ class GraphService:
             ).strip().lower()
             if not wallet_key:
                 return
-            with driver.session() as session:
+            drv = self._get_driver()
+            if not drv:
+                logger.debug("Neo4j driver offline; skipping graph operation.")
+                return
+            with drv.session() as session:
                 for entity in entities:
                     value = entity.get("value")
                     if not value:
@@ -212,7 +222,11 @@ class GraphService:
         """
         try:
             seen_pairs = set()
-            with driver.session() as session:
+            drv = self._get_driver()
+            if not drv:
+                logger.debug("Neo4j driver offline; skipping graph operation.")
+                return
+            with drv.session() as session:
                 for i in range(len(wallets)):
                     for j in range(
                         i + 1,
@@ -495,7 +509,11 @@ class GraphService:
         RETURN a, r, b
         """
         try:
-            with driver.session() as session:
+            drv = self._get_driver()
+            if not drv:
+                logger.debug("Neo4j driver offline; skipping graph operation.")
+                return
+            with drv.session() as session:
                 # =================================================
                 # CLEAN CURRENT CASE RELATIONSHIPS
                 # =================================================
@@ -825,7 +843,11 @@ class GraphService:
         nodes = {}
         edges = {}
         try:
-            with driver.session() as session:
+            drv = self._get_driver()
+            if not drv:
+                logger.debug("Neo4j driver offline; skipping graph operation.")
+                return
+            with drv.session() as session:
                 result = session.run(
                     query,
                     case_id=case_id,
@@ -992,7 +1014,11 @@ class GraphService:
             ) AS max_risk
         """
         try:
-            with driver.session() as session:
+            drv = self._get_driver()
+            if not drv:
+                logger.debug("Neo4j driver offline; skipping graph operation.")
+                return
+            with drv.session() as session:
                 record = session.run(
                     query,
                     case_id=case_id,
@@ -1092,7 +1118,11 @@ class GraphService:
         """
         investigations = []
         try:
-            with driver.session() as session:
+            drv = self._get_driver()
+            if not drv:
+                logger.debug("Neo4j driver offline; skipping graph operation.")
+                return
+            with drv.session() as session:
                 result = session.run(
                     query
                 )
@@ -1196,7 +1226,11 @@ class GraphService:
         edges = {}
         edge_keys = set()
         try:
-            with driver.session() as session:
+            drv = self._get_driver()
+            if not drv:
+                logger.debug("Neo4j driver offline; skipping graph operation.")
+                return
+            with drv.session() as session:
                 result = session.run(
                     query,
                     root=investigation_root,
@@ -1345,7 +1379,11 @@ class GraphService:
         edges = {}
         edge_keys = set()
         try:
-            with driver.session() as session:
+            drv = self._get_driver()
+            if not drv:
+                logger.debug("Neo4j driver offline; skipping graph operation.")
+                return
+            with drv.session() as session:
                 result = session.run(
                     query
                 )

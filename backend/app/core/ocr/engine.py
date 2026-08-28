@@ -106,42 +106,35 @@ class OCREngine:
     # Used by Telegram Collector
     # ==========================================
     def extract_pdf(self, path):
+        full_text = ""
+        # Attempt 1: Direct text extraction via pypdf / pypdf2 / pdfplumber
         try:
-            logger.info(
-                "Processing PDF: %s",
-                path
-            )
+            import pypdf
+            reader = pypdf.PdfReader(path)
+            for page in reader.pages:
+                extracted = page.extract_text()
+                if extracted:
+                    full_text += "\n" + extracted
+            if full_text.strip():
+                logger.info("Direct PDF text extraction succeeded via pypdf (%s chars)", len(full_text))
+                return full_text.strip()
+        except Exception as pypdf_err:
+            logger.debug("pypdf extraction skipped: %s", pypdf_err)
+
+        # Attempt 2: Image rendering + EasyOCR via pdf2image
+        try:
+            logger.info("Processing PDF via pdf2image OCR: %s", path)
             from pdf2image import convert_from_path
-            pages = convert_from_path(
-                path
-            )
-            full_text = ""
+            pages = convert_from_path(path)
             for index, page in enumerate(pages):
-                logger.info(
-                    "Processing PDF page %s",
-                    index + 1
-                )
-                image = cv2.cvtColor(
-                    np.array(page),
-                    cv2.COLOR_RGB2BGR
-                )
-                text = self.extract_text(
-                    image
-                )
+                logger.info("Processing PDF page %s", index + 1)
+                image = cv2.cvtColor(np.array(page), cv2.COLOR_RGB2BGR)
+                text = self.extract_text(image)
                 if text:
-                    full_text += (
-                        "\n" +
-                        text
-                    )
-            logger.info(
-                "PDF OCR completed"
-            )
+                    full_text += "\n" + text
+            logger.info("PDF OCR completed")
             return full_text.strip()
         except Exception as e:
-            logger.error(
-                "PDF OCR failed: %s",
-                e
-            )
-            traceback.print_exc()
-            return ""
+            logger.error("PDF OCR failed: %s", e)
+            return full_text.strip()
 ocr_engine = OCREngine()

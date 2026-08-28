@@ -1,4 +1,5 @@
 "use client";
+
 import {
   FileText,
   Wallet,
@@ -8,16 +9,16 @@ import {
   Fingerprint,
   Activity,
 } from "lucide-react";
+
 interface ReportSummaryProps {
-  caseName: string;
   evidenceCount: number;
   walletCount: number;
   riskScore: number;
   osintMatches: number;
   generatedAt: string;
 }
+
 export default function ReportSummary({
-  caseName,
   evidenceCount,
   walletCount,
   riskScore,
@@ -30,6 +31,7 @@ export default function ReportSummary({
       return "text-amber-400 bg-amber-500/[0.08] border-amber-500/20";
     return "text-emerald-400 bg-emerald-500/[0.08] border-emerald-500/20";
   };
+
   return (
     <div className="rounded-2xl border border-white/[0.07] bg-[#070b12]/90 p-6 backdrop-blur-xl lg:p-7">
       <div className="flex items-center justify-between">
@@ -39,21 +41,22 @@ export default function ReportSummary({
           </div>
           <div>
             <h2 className="text-base font-semibold text-white">
-              Investigation Summary
+              Forensic Intelligence Summary
             </h2>
             <p className="mt-0.5 text-xs text-slate-500">
-              Live telemetry for the selected case
+              Live telemetry aggregated across all ingested evidence & extracted wallets
             </p>
           </div>
         </div>
         <span className="hidden rounded-lg border border-cyan-400/20 bg-cyan-400/[0.06] px-3 py-1 font-mono text-[10px] text-cyan-400 sm:inline-block">
-          TELEMETRY // SYNCED
+          TELEMETRY // LIVE
         </span>
       </div>
+
       <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <SummaryCard
-          title="Case"
-          value={caseName}
+          title="Intelligence Scope"
+          value="All Extracted Intelligence"
           icon={<Fingerprint size={15} className="text-cyan-400" />}
           mono
         />
@@ -70,7 +73,7 @@ export default function ReportSummary({
         <div className="rounded-xl border border-white/[0.07] bg-white/[0.015] p-4 transition-all hover:border-cyan-400/20">
           <div className="flex items-center justify-between text-slate-400">
             <span className="font-mono text-[10px] font-medium uppercase tracking-wider text-slate-500">
-              Risk Score
+              Maximum Risk Score
             </span>
             <ShieldAlert
               size={15}
@@ -88,7 +91,7 @@ export default function ReportSummary({
               className={`inline-block rounded-md border px-2 py-0.5 font-mono text-[9px] font-semibold ${getRiskColor(riskScore)}`}
             >
               {riskScore >= 70
-                ? "CRITICAL RISK"
+                ? "HIGH RISK DETECTED"
                 : riskScore >= 40
                   ? "MODERATE RISK"
                   : "LOW RISK"}
@@ -110,6 +113,7 @@ export default function ReportSummary({
     </div>
   );
 }
+
 function SummaryCard({
   title,
   value,
@@ -130,7 +134,7 @@ function SummaryCard({
         {icon}
       </div>
       <p
-        className={`mt-3 break-all text-base font-semibold text-white ${mono ? "font-mono text-sm tracking-wide text-cyan-300" : ""}`}
+        className={`mt-3 break-all text-base font-semibold text-white ${mono ? "font-mono text-xs tracking-wide text-cyan-300" : ""}`}
       >
         {value}
       </p>
